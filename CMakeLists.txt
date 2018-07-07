@@ -17,6 +17,7 @@ option(CAPSTONE_USE_DEFAULT_ALLOC "Use default memory allocation functions" ON)
 
 option(CAPSTONE_ARM_SUPPORT "ARM support" ON)
 option(CAPSTONE_ARM64_SUPPORT "ARM64 support" ON)
+option(CPASTONE_HC16_SUPPORT "Hc16 support" ON)
 option(CAPSTONE_MIPS_SUPPORT "MIPS support" ON)
 option(CAPSTONE_PPC_SUPPORT "PowerPC support" ON)
 option(CAPSTONE_SPARC_SUPPORT "Sparc support" ON)
@@ -131,6 +132,18 @@ if (CAPSTONE_ARM64_SUPPORT)
         arch/AArch64/AArch64Mapping.h
         )
     set(TEST_SOURCES ${TEST_SOURCES} test_arm64.c)
+endif ()
+
+if (CAPSTONE_HC16_SUPPORT)
+    add_definitions(-DCAPSTONE_HAS_HC16)
+    set(SOURCES_HC16
+	arch/Hc16/Hc16BaseInfo.c
+	arch/Hc16/Hc16Module.c
+	)
+    set(HEADERS_HC16
+	arch/Hc16/Hc16BaseInfo.h
+	)
+    set(TEST_ROUCES ${TEST_SOURCES} test_hc16.c)
 endif ()
 
 if (CAPSTONE_MIPS_SUPPORT)

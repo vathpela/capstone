@@ -70,6 +70,7 @@ typedef size_t csh;
 typedef enum cs_arch {
 	CS_ARCH_ARM = 0,	// ARM architecture (including Thumb, Thumb-2)
 	CS_ARCH_ARM64,		// ARM-64, also called AArch64
+	CS_ARCH_HC16,		// Motorola M68HC16, also called HC16
 	CS_ARCH_MIPS,		// Mips architecture
 	CS_ARCH_X86,		// X86 architecture (including x86 & x86-64)
 	CS_ARCH_PPC,		// PowerPC architecture
@@ -215,6 +216,7 @@ typedef struct cs_opt_skipdata {
 #include "arm.h"
 #include "arm64.h"
 #include "mips.h"
+#include "hc16.h"
 #include "ppc.h"
 #include "sparc.h"
 #include "systemz.h"
@@ -237,6 +239,7 @@ typedef struct cs_detail {
 		cs_x86 x86;	// X86 architecture, including 16-bit, 32-bit & 64-bit mode
 		cs_arm64 arm64;	// ARM64 architecture (aka AArch64)
 		cs_arm arm;		// ARM architecture (including Thumb/Thumb2)
+		cs_hc16 hc16;	// Hc16
 		cs_mips mips;	// MIPS architecture
 		cs_ppc ppc;	// PowerPC architecture
 		cs_sparc sparc;	// Sparc architecture

@@ -54,6 +54,7 @@
 
 #include "arch/AArch64/AArch64Module.h"
 #include "arch/ARM/ARMModule.h"
+#include "arch/Hc16/Hc16Module.h"
 #include "arch/Mips/MipsModule.h"
 #include "arch/PowerPC/PPCModule.h"
 #include "arch/Sparc/SparcModule.h"
@@ -71,6 +72,11 @@ static cs_err (*cs_arch_init[MAX_ARCH])(cs_struct *) = {
 #endif
 #ifdef CAPSTONE_HAS_ARM64
 	AArch64_global_init,
+#else
+	NULL,
+#endif
+#ifdef CAPSTONE_HAS_HC16
+	Hc16_global_init,
 #else
 	NULL,
 #endif
@@ -115,6 +121,11 @@ static cs_err (*cs_arch_option[MAX_ARCH]) (cs_struct *, cs_opt_type, size_t valu
 #endif
 #ifdef CAPSTONE_HAS_ARM64
 	AArch64_option,
+#else
+	NULL,
+#endif
+#ifdef CAPSTONE_HAS_HC16
+	Hc16_option,
 #else
 	NULL,
 #endif
@@ -163,6 +174,11 @@ cs_mode cs_arch_disallowed_mode_mask[MAX_ARCH] = {
 #else
 	0,
 #endif
+#ifdef CAPSTONE_HAS_HC16
+	~(CS_MODE_LITTLE_ENDIAN | CS_MODE_16),
+#else
+	0,
+#endif
 #ifdef CAPSTONE_HAS_MIPS
 	~(CS_MODE_LITTLE_ENDIAN | CS_MODE_32 | CS_MODE_64 | CS_MODE_MICRO | CS_MODE_MIPS32R6 | CS_MODE_MIPSGP64 |
 	  CS_MODE_BIG_ENDIAN),
@@ -205,6 +221,12 @@ static unsigned int all_arch =
 	|
 #ifdef CAPSTONE_HAS_ARM64
 	(1 << CS_ARCH_ARM64)
+#else
+	0
+#endif
+	|
+#ifdef CAPSTONE_HAS_HC16
+	(1 << CS_ARCH_HC16)
 #else
 	0
 #endif
@@ -299,6 +321,7 @@ bool CAPSTONE_API cs_support(int query)
 {
 	if (query == CS_ARCH_ALL)
 		return all_arch == ((1 << CS_ARCH_ARM) | (1 << CS_ARCH_ARM64) |
+				(1 << CS_ARCH_HC16) |
 				(1 << CS_ARCH_MIPS) | (1 << CS_ARCH_X86) |
 				(1 << CS_ARCH_PPC) | (1 << CS_ARCH_SPARC) |
 				(1 << CS_ARCH_SYSZ) | (1 << CS_ARCH_XCORE));
@@ -519,6 +542,7 @@ static uint8_t skipdata_size(cs_struct *handle)
 			// SystemZ instruction's length can be 2, 4 or 6 bytes,
 			// so we just skip 2 bytes
 			return 2;
+		case CS_ARCH_HC16:
 		case CS_ARCH_X86:
 			// X86 has no restriction on instruction alignment
 			return 1;
@@ -1138,6 +1162,11 @@ int CAPSTONE_API cs_op_count(csh ud, const cs_insn *insn, unsigned int op_type)
 				if (insn->detail->x86.operands[i].type == (x86_op_type)op_type)
 					count++;
 			break;
+		case CS_ARCH_HC16:
+			for (i = 0; i < insn->detail->hc16.op_count; i++)
+				if (insn->detail->hc16.operands[i].type == (hc16_op_type)op_type)
+					count++;
+			break;
 		case CS_ARCH_MIPS:
 			for (i = 0; i < insn->detail->mips.op_count; i++)
 				if (insn->detail->mips.operands[i].type == (mips_op_type)op_type)
@@ -1219,6 +1248,14 @@ int CAPSTONE_API cs_op_index(csh ud, const cs_insn *insn, unsigned int op_type,
 		case CS_ARCH_X86:
 			for (i = 0; i < insn->detail->x86.op_count; i++) {
 				if (insn->detail->x86.operands[i].type == (x86_op_type)op_type)
+					count++;
+				if (count == post)
+					return i;
+			}
+			break;
+		case CS_ARCH_HC16:
+			for (i = 0; i < insn->detail->hc16.op_count; i++) {
+				if (insn->detail->hc16.operands[i].type == (hc16_op_type)op_type)
 					count++;
 				if (count == post)
 					return i;
